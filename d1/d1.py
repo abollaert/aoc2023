@@ -37,5 +37,4 @@ def get_calibration_value(data):
 
 data = read_data("input1.txt")
 numbers = list(map(get_calibration_value, data))
-
 print(sum(numbers))
