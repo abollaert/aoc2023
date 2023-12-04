@@ -67,7 +67,6 @@ if __name__ == "__main__":
                 for k in range(0, num_winning):
                     cards[card.id + k].add_copy()
 
-        print(cards)
         print(sum(map(lambda c: c.number_owned, cards)))
 
 
