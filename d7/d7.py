@@ -13,12 +13,12 @@ class Card:
     @staticmethod
     def for_symbol(symbol: str) -> Card:
         if symbol.isnumeric():
-            return Card(symbol, int(symbol) - 1)
+            return Card(symbol, int(symbol))
         else:
             if symbol == "T":
-                return Card(symbol, 9)
-            if symbol == "J":
                 return Card(symbol, 10)
+            if symbol == "J":
+                return Card(symbol, 1)
             elif symbol == "Q":
                 return Card(symbol, 11)
             elif symbol == "K":
@@ -32,7 +32,7 @@ class Card:
 class Hand:
     cards: List[Card]
     bid: int
-    distribution: Dict[Card, int] = field(init=False)
+    distribution: Dict[str, int] = field(init=False)
 
     def __post_init__(self):
         self.distribution = self.__get_card_distribution()
@@ -85,20 +85,44 @@ class Hand:
 
         return num_triplets
 
+    def __get_number_of_jokers(self):
+        num_jokers: int = 0
+
+        for card in self.cards:
+            if card.symbol == "J":
+                num_jokers = num_jokers + 1
+
+        return num_jokers
+
     def __has_four_of_a_kind(self) -> bool:
         return 4 in self.distribution.values()
 
     def __has_five_of_a_kind(self) -> bool:
         return 5 in self.distribution.values()
 
-    def __get_card_distribution(self) -> Dict[Card, int]:
-        card_distribution: Dict[Card, int] = {}
+    def __get_card_distribution(self) -> Dict[str, int]:
+        card_distribution: Dict[str, int] = {}
 
         for card in self.cards:
-            if card not in card_distribution.keys():
-                card_distribution[card] = 1
-            else:
-                card_distribution[card] = card_distribution[card] + 1
+            if card.symbol != "J":
+                if card.symbol not in card_distribution.keys():
+                    card_distribution[card.symbol] = 1
+                else:
+                    card_distribution[card.symbol] = card_distribution[card.symbol] + 1
+
+        highest_card: str = None
+        highest_count: int = 0
+
+        for card in card_distribution.keys():
+            if card_distribution[card] > highest_count:
+                highest_card = card
+                highest_count = card_distribution[card]
+
+
+        if highest_card == None:
+            card_distribution["J"] = 5
+        else:
+            card_distribution[highest_card] = card_distribution[highest_card] + self.__get_number_of_jokers()
 
         return card_distribution
 
