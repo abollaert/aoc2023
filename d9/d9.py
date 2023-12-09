@@ -79,13 +79,10 @@ if __name__ == "__main__":
         for line in data_file.readlines():
             value_histories.append(ValueHistory.parse(line))
 
-        # print(value_histories)
-
         sum: int = 0
 
         for value_history in value_histories:
             value_history.previous_value()
-            print(value_history)
             sum = sum + value_history.values[0]
 
         print(sum)
