@@ -148,6 +148,7 @@ class Grid:
 
         return length
 
+    # https://en.wikipedia.org/wiki/Nonzero-rule
     def count_inside_loop(self) -> int:
         inside_loop: int = 0
 
