@@ -1,64 +1,64 @@
 from dataclasses import dataclass
 from typing import Tuple
 from typing import List
-from typing import Set
+from functools import cache
 
 @dataclass
 class Springs:
     springs: str
     groups: List[int]
+    
+@cache
+def count_valid_patterns(groups: Tuple[int, ...], pattern: str) -> int:
+    if len(groups) == 0:
+        if "#" in pattern:
+            return 0
 
-def find_groups(line: str) -> List[int]:
-    groups: List[int] = []
-    current_group: int = 0
+        return 1
 
-    for c in line:
-        if c == "#":
-            current_group = current_group + 1
-        elif c == ".":
-            if current_group > 0:
-                groups.append(current_group)
-                current_group = 0
+    current_group: int = groups[0]
+    matching_patterns: int = 0
 
-    if current_group != 0:
-        groups.append(current_group)
+    for i in range(len(pattern) - sum(groups[1:])):
+        for j in range(i, i + current_group):
+            if j >= len(pattern):
+                return matching_patterns
 
-    return groups
+            if pattern[j] == ".":
+                break
+                
+            if j == i and j > 0 and pattern[j - 1] == "#":
+                return matching_patterns
 
-def matches(candidate: str, groups: List[int]) -> bool:
-    groups_in_candidate: List[int] = find_groups(candidate)
-    #print("Groups in candidate : %s, expected groups : %s" % (groups_in_candidate, groups))
-    return groups_in_candidate == groups
+            if j == i + current_group - 1:
+                if j + 1 < len(pattern) and pattern[j + 1] == "#":
+                    break
 
+                matching_patterns += count_valid_patterns(groups[1:], pattern[j + 2 :])
 
-def generate_candidates(line: str) -> Set[str]:
-    candidates: Set[str] = set()
-
-    if line.count("?") == 0:
-        candidates.add(line)
-    elif line.count("?") == 1:
-        candidates.add(line.replace("?", "#"))
-        candidates.add(line.replace("?", "."))
-    else:
-        next_candidates: Set[str] = generate_candidates(line.replace("?", "#", 1))
-
-        for candidate in next_candidates:
-            candidates.add(candidate)
-
-        next_candidates: Set[str] = generate_candidates(line.replace("?", ".", 1))
-
-        for candidate in next_candidates:
-            candidates.add(candidate)
-
-    return candidates
+    return matching_patterns
 
 def parse_line(line: str) -> Springs:
     parts: List[str] = line.split()
 
     springs: str = parts[0]
+    expanded: str = ""
+
+    for i in range(0, 5):
+        expanded = expanded + springs
+
+        if i < 4:
+            expanded = expanded + "?"
+
     groups: List[int] = [int(x) for x in parts[1].split(",")]
 
-    return Springs(springs, groups)
+    expanded_groups: List[int] = []
+
+    for i in range(0, 5):
+        expanded_groups.extend(groups)
+
+    #print("Expanded : springs %s, groups %s" % (expanded, expanded_groups))
+    return Springs(expanded, expanded_groups)
 
 if __name__ == "__main__":
     springs: List[Springs] = []
@@ -67,17 +67,13 @@ if __name__ == "__main__":
         for line in data_file.readlines():
             springs.append(parse_line(line))
 
-    sum: int = 0
+    total: int = 0
 
     for spring in springs:
-        candidates: Set[str] = generate_candidates(spring.springs)
-        matching_candidates: List[str] = [c for c in candidates if matches(c, spring.groups)]
+        total = total + count_valid_patterns(tuple(spring.groups), spring.springs)
 
-        print("Matching candidates : %s" % (matching_candidates))
+    print(total)
 
-        sum = sum + len(matching_candidates)
-
-    print(sum)
 
 
 
